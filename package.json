@@ -1,0 +1,27 @@
+{
+    "name": "uw-learn",
+    "version": "0.1.0",
+    "description": "CLI for University of Waterloo LEARN (Brightspace)",
+    "type": "module",
+    "bin": {
+        "uw-learn": "./dist/main.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsx src/main.ts",
+        "start": "node dist/main.js",
+        "setup-playwright": "playwright install chromium"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "dependencies": {
+        "commander": "^13.1.0",
+        "playwright": "^1.51.0"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.10",
+        "tsx": "^4.19.3",
+        "typescript": "^5.8.2"
+    }
+}

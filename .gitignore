@@ -1,0 +1,15 @@
+# folders
+.vscode/
+bin/
+*/bin/
+dist/
+node_modules/
+
+# files
+.DS_Store
+.env
+package-lock.json
+session.json
+
+# extensions
+*.log
