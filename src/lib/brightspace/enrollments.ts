@@ -14,16 +14,18 @@ export async function listMyCourses(client: BrightspaceClient): Promise<MyOrgUni
         const params = new URLSearchParams({
             orgUnitTypeId: String(COURSE_OFFERING_TYPE_ID),
         });
-        if (bookmark) params.set("bookmark", bookmark);
+        if (bookmark) {
+            params.set("bookmark", bookmark);
+        }
 
         const page = await client.json<PagedResult<MyOrgUnitInfo>>(
             `/d2l/api/lp/${LP_VERSION}/enrollments/myenrollments/?${params}`,
         );
 
         items.push(...page.Items);
-        if (!page.PagingInfo.HasMoreItems) break;
+        if (!page.PagingInfo.HasMoreItems) {break;}
         bookmark = page.PagingInfo.Bookmark;
-        if (!bookmark) break;
+        if (!bookmark) {break;}
     }
 
     return items;

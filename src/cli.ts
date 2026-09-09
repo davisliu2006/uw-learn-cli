@@ -40,7 +40,7 @@ export default function buildCLI(): Command {
 
     program
         .command("content")
-        .description("Show the content tree for a course")
+        .description("Show the numbered content tree for a course")
         .argument("<course>", "Course id, code, or name")
         .action(contentCommand);
 
@@ -48,7 +48,12 @@ export default function buildCLI(): Command {
         .command("download")
         .description("Download file topics for a course into ./{CourseCode}/")
         .argument("<course>", "Course id, code, or name")
-        .action(downloadCommand);
+        .argument("<start>", "Start content line number (inclusive, from content)")
+        .argument("[end]", "End content line number (inclusive); defaults to start")
+        .option("--dry-run", "List files that would be downloaded without writing")
+        .action((course: string, start: string, end: string | undefined, opts: { dryRun?: boolean }) =>
+            downloadCommand(course, start, end, opts),
+        );
 
     return program;
 }

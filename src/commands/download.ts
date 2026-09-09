@@ -11,42 +11,35 @@ import {
     writeResponseToFile,
 } from "../lib/fs.js";
 import { resolveCourse } from "../lib/resolve.js";
-import type { TOCModule, TOCTopic } from "../lib/brightspace/types.js";
+import { filesForRange, flattenToc } from "../lib/toc.js";
 
-/**
- * A downloadable file with topic and relative path.
- */
-type FileItem = {
-    topic: TOCTopic;
-    relDir: string;
+export type DownloadOptions = {
+    dryRun?: boolean;
 };
 
 /**
- * Read topic type from a TOC topic (with fallbacks).
+ * Parse a required line-number argument.
  */
-function topicType(topic: TOCTopic): number | undefined {
-    return topic.TopicType ?? topic.Type;
-}
-
-/**
- * Traverse TOC and collect downloadable files.
- */
-function collectFiles(modules: TOCModule[], parentParts: string[], out: FileItem[]): void {
-    for (const mod of modules) {
-        const parts = [...parentParts, sanitizeName(mod.Title)];
-        for (const topic of mod.Topics ?? []) {
-            if (topicType(topic) === 1) {
-                out.push({ topic, relDir: join(...parts) });
-            }
-        }
-        collectFiles(mod.Modules ?? [], parts, out);
+function parseLineIndex(value: string, label: string): number {
+    if (!/^\d+$/.test(value)) {
+        throw new Error(`${label} must be a positive integer.`);
     }
+    return Number(value);
 }
 
 /**
- * Download all file topics for a course into ./{CourseCode}/, skipping existing files.
+ * Download file topics for a course into ./{CourseCode}/, skipping existing files.
+ * start/end are inclusive content line numbers from `content` (end defaults to start).
  */
-export default async function downloadCommand(courseQuery: string): Promise<void> {
+export default async function downloadCommand(
+    courseQuery: string,
+    startArg: string,
+    endArg?: string,
+    options: DownloadOptions = {},
+): Promise<void> {
+    const start = parseLineIndex(startArg, "Start");
+    const end = endArg !== undefined ? parseLineIndex(endArg, "End") : start;
+
     const session = await requireSession();
     const client = new BrightspaceClient(session);
     const courses = await listMyCourses(client);
@@ -55,28 +48,26 @@ export default async function downloadCommand(courseQuery: string): Promise<void
 
     const rootName = sanitizeName(course.OrgUnit.Code ?? String(course.OrgUnit.Id));
     const outRoot = join(cwd(), rootName);
-    const files: FileItem[] = [];
-    collectFiles(toc.Modules ?? [], [], files);
+    const rows = flattenToc(toc.Modules ?? []);
+    const { files, unsupported } = filesForRange(rows, start, end);
+
+    const dryRun = Boolean(options.dryRun);
+    console.log(
+        `${dryRun ? "Dry run: would download" : "Downloading"} ${files.length} file(s) to ${outRoot} (lines ${start}-${end})`,
+    );
+
+    if (dryRun) {
+        for (const item of files) {
+            const name = sanitizeName(item.topic.Title || `topic-${item.topic.TopicId}`);
+            console.log(`would ${join(rootName, item.relDir, name)}`);
+        }
+        console.log(`\nDone. would=${files.length} unsupported=${unsupported}`);
+        return;
+    }
 
     let downloaded = 0;
     let skipped = 0;
     let failed = 0;
-    let unsupported = 0;
-
-    /**
-     * Count non-file topics for the end-of-run summary.
-     */
-    const countUnsupported = (modules: TOCModule[]): void => {
-        for (const mod of modules) {
-            for (const topic of mod.Topics ?? []) {
-                if (topicType(topic) !== 1) unsupported += 1;
-            }
-            countUnsupported(mod.Modules ?? []);
-        }
-    };
-    countUnsupported(toc.Modules ?? []);
-
-    console.log(`Downloading ${files.length} file(s) to ${outRoot}`);
 
     for (const item of files) {
         const fallbackName = item.topic.Title || `topic-${item.topic.TopicId}`;
@@ -114,5 +105,7 @@ export default async function downloadCommand(courseQuery: string): Promise<void
     console.log(
         `\nDone. downloaded=${downloaded} skipped=${skipped} unsupported=${unsupported} failed=${failed}`,
     );
-    if (failed > 0) process.exit(1);
+    if (failed > 0) {
+        throw new Error(`Download finished with ${failed} failure(s).`);
+    }
 }

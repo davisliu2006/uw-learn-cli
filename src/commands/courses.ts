@@ -6,9 +6,9 @@ import { listMyCourses } from "../lib/brightspace/enrollments.js";
  * Format ISO date.
  */
 function formatDate(iso: string | null | undefined): string {
-    if (!iso) return "(no date)";
+    if (!iso) {return "(no date)";}
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "(no date)";
+    if (Number.isNaN(d.getTime())) {return "(no date)";}
     return d.toLocaleDateString("en-CA", {
         month: "short",
         day: "numeric",
@@ -32,7 +32,7 @@ export default async function coursesCommand(): Promise<void> {
     for (const [i, c] of courses.entries()) {
         const start = formatDate(c.Access?.StartDate);
         const end = formatDate(c.Access?.EndDate);
-        if (i > 0) console.log();
+        if (i > 0) {console.log();}
         console.log(`(${c.OrgUnit.Id}) ${c.OrgUnit.Code ?? "(no code)"}`);
         console.log(c.OrgUnit.Name);
         console.log(`${start} - ${end}`);

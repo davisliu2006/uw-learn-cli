@@ -19,7 +19,7 @@ export async function loadSession(): Promise<AuthSession | null> {
         return JSON.parse(raw) as AuthSession;
     } catch (err) {
         const code = (err as NodeJS.ErrnoException).code;
-        if (code === "ENOENT") return null;
+        if (code === "ENOENT") {return null;}
         throw err;
     }
 }
@@ -45,13 +45,12 @@ export async function clearSession(): Promise<void> {
 }
 
 /**
- * Load the session or exit with a prompt to run login.
+ * Load the session or throw with a prompt to run login.
  */
 export async function requireSession(): Promise<AuthSession> {
     const session = await loadSession();
     if (!session) {
-        console.error(`Not logged in. Run: ${APP_NAME} login`);
-        process.exit(1);
+        throw new Error(`Not logged in. Run: ${APP_NAME} login`);
     }
     return session;
 }

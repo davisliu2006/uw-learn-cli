@@ -11,7 +11,9 @@ const UNSAFE = /[<>:"/\\|?*\u0000-\u001f]/g;
  */
 export function sanitizeName(name: string): string {
     const cleaned = name.replace(UNSAFE, "_").replace(/\s+/g, " ").trim();
-    if (!cleaned || cleaned === "." || cleaned === "..") return "_";
+    if (!cleaned || cleaned === "." || cleaned === "..") {
+        return "_";
+    }
     return cleaned.slice(0, 120);
 }
 
@@ -19,7 +21,7 @@ export function sanitizeName(name: string): string {
  * Prefer Content-Disposition filename when present; otherwise sanitize fallback.
  */
 export function filenameFromDisposition(header: string | null, fallback: string): string {
-    if (!header) return sanitizeName(fallback);
+    if (!header) {return sanitizeName(fallback);}
 
     const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(header);
     if (utf8?.[1]) {
@@ -31,7 +33,7 @@ export function filenameFromDisposition(header: string | null, fallback: string)
     }
 
     const plain = /filename="?([^";]+)"?/i.exec(header);
-    if (plain?.[1]) return sanitizeName(plain[1]);
+    if (plain?.[1]) {return sanitizeName(plain[1]);}
 
     return sanitizeName(fallback);
 }
@@ -55,7 +57,9 @@ export async function writeResponseToFile(res: Response, destPath: string): Prom
     await mkdir(dirname(destPath), { recursive: true });
     const partPath = `${destPath}.part`;
     try {
-        if (!res.body) throw new Error("Empty response body");
+        if (!res.body) {
+            throw new Error("Empty response body");
+        }
         const nodeStream = Readable.fromWeb(res.body as import("stream/web").ReadableStream);
         await pipeline(nodeStream, createWriteStream(partPath));
         await rename(partPath, destPath);

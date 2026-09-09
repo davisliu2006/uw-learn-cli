@@ -29,7 +29,7 @@ export class BrightspaceClient {
 
     /**
      * Perform a fetch against LEARN. Relative paths are resolved against HOST.
-     * On 401, clears the local session and exits.
+     * On 401, clears the local session and throws.
      */
     async request(path: string, init: RequestInit = {}): Promise<Response> {
         const url = path.startsWith("http") ? path : `${HOST}${path}`;
@@ -38,8 +38,7 @@ export class BrightspaceClient {
 
         if (res.status === 401) {
             await clearSession();
-            console.error(`Session expired. Run: ${APP_NAME} login`);
-            process.exit(1);
+            throw new Error(`Session expired. Run: ${APP_NAME} login`);
         }
 
         return res;
