@@ -31,10 +31,17 @@ uw-learn courses
 
 ```
 > login
+> logout
+> whoami
 > courses
 > content <course>
-> download <course>
+> download <course> <start> [end] [-o <outdir>] [--dry-run]
 > exit
 ```
 
 `login` opens a Chromium window and saves session cookies.
+
+`content` prints a numbered tree; use those line numbers with `download`.
+
+`download` writes files to `<outdir>/{CourseCode}/` (`outdir` defaults to the current directory).
+

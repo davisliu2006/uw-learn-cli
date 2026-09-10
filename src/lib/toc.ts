@@ -31,10 +31,29 @@ export type FlatTOCRow =
     };
 
 /**
- * Read topic type from a TOC topic (with fallbacks).
+ * Read the TOC topic kind.
+ * Prefer TypeIdentifier ("File", "Link", ...);
+ * fall back to ActivityType (File=1, Link=2, ...).
  */
-export function topicType(topic: TOCTopic): number | undefined {
-    return topic.TopicType ?? topic.Type;
+export function topicType(topic: TOCTopic): string {
+    if (topic.TypeIdentifier) {
+        return topic.TypeIdentifier.toLowerCase();
+    }
+    switch (topic.ActivityType) {
+        case 1:
+            return "file";
+        case 2:
+            return "link";
+        default:
+            return "other";
+    }
+}
+
+/**
+ * Whether a TOC topic is a downloadable file.
+ */
+export function isFileTopic(topic: TOCTopic): boolean {
+    return topicType(topic) === "file";
 }
 
 /**
@@ -83,7 +102,7 @@ export function flattenToc(modules: TOCModule[]): FlatTOCRow[] {
  */
 function collectModuleFiles(mod: TOCModule, relParts: string[], out: Map<number, FileItem>): void {
     for (const topic of mod.Topics ?? []) {
-        if (topicType(topic) === 1) {
+        if (isFileTopic(topic)) {
             out.set(topic.TopicId, { topic, relDir: join(...relParts) });
         }
     }
@@ -98,7 +117,7 @@ function collectModuleFiles(mod: TOCModule, relParts: string[], out: Map<number,
 function countUnsupportedInModule(mod: TOCModule): number {
     let n = 0;
     for (const topic of mod.Topics ?? []) {
-        if (topicType(topic) !== 1) {
+        if (!isFileTopic(topic)) {
             n += 1;
         }
     }
@@ -172,7 +191,7 @@ export function filesForRange(
             }
             collectModuleFiles(row.module, row.relParts, byId);
             unsupported += countUnsupportedInModule(row.module);
-        } else if (topicType(row.topic) === 1) {
+        } else if (isFileTopic(row.topic)) {
             covered.add(row.index);
             byId.set(row.topic.TopicId, {
                 topic: row.topic,

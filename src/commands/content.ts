@@ -2,19 +2,10 @@ import { requireSession } from "../lib/auth/store.js";
 import { BrightspaceClient } from "../lib/brightspace/client.js";
 import { getTOC } from "../lib/brightspace/content.js";
 import { listMyCourses } from "../lib/brightspace/enrollments.js";
+import { blue, green, yellow } from "../lib/fonts.js";
 import { resolveCourse } from "../lib/resolve.js";
 import { flattenToc, topicType } from "../lib/toc.js";
-import type { TOCModule, TOCTopic } from "../lib/brightspace/types.js";
-
-/**
- * Map a TOC topic type to a label for display.
- */
-function topicTypeStr(topic: TOCTopic): string {
-    const type = topicType(topic);
-    if (type === 1) {return "file";}
-    if (type === 3) {return "link";}
-    return "other";
-}
+import type { TOCModule } from "../lib/brightspace/types.js";
 
 /**
  * Recursively print the TOC and its children as a numbered tree.
@@ -28,7 +19,7 @@ function printTOC(
     indexWidth: number,
 ): void {
     indexRef.n += 1;
-    const label = String(indexRef.n).padStart(indexWidth);
+    const label = yellow(String(indexRef.n).padStart(indexWidth));
     const branch = isLast ? "└── " : "├── ";
     console.log(`${label} ${indent}${branch}${module.Title}`);
     const childIndent = indent + (isLast ? "    " : "│   ");
@@ -46,11 +37,13 @@ function printTOC(
     for (const topic of topics) {
         i += 1;
         indexRef.n += 1;
-        const tNum = String(indexRef.n).padStart(indexWidth);
+        const tNum = yellow(String(indexRef.n).padStart(indexWidth));
         const tBranch = i === total ? "└── " : "├── ";
-        const typeStr = topicTypeStr(topic);
-        const extra = typeStr === "link" && topic.Url ? `  ${topic.Url}` : "";
-        console.log(`${tNum} ${childIndent}${tBranch}${topic.Title}  ${typeStr}${extra}`);
+        const typeStr = topicType(topic);
+        const extra = typeStr === "link" && topic.Url ? `  ${blue(topic.Url)}` : "";
+        console.log(
+            `${tNum} ${childIndent}${tBranch}${topic.Title}  ${green(typeStr)}${extra}`
+        );
     }
 }
 

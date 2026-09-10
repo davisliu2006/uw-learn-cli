@@ -1,5 +1,5 @@
 import { cwd } from "process";
-import { join } from "path";
+import { join, relative } from "path";
 import { requireSession } from "../lib/auth/store.js";
 import { BrightspaceClient } from "../lib/brightspace/client.js";
 import { getTOC, getTopicFile } from "../lib/brightspace/content.js";
@@ -7,6 +7,7 @@ import { listMyCourses } from "../lib/brightspace/enrollments.js";
 import {
     filenameFromDisposition,
     pathExists,
+    resolvePath,
     sanitizeName,
     writeResponseToFile,
 } from "../lib/fs.js";
@@ -15,6 +16,7 @@ import { filesForRange, flattenToc } from "../lib/toc.js";
 
 export type DownloadOptions = {
     dryRun?: boolean;
+    outdir?: string;
 };
 
 /**
@@ -28,8 +30,9 @@ function parseLineIndex(value: string, label: string): number {
 }
 
 /**
- * Download file topics for a course into ./{CourseCode}/, skipping existing files.
+ * Download file topics for a course into <outdir>/{CourseCode}/, skipping existing files.
  * start/end are inclusive content line numbers from `content` (end defaults to start).
+ * outdir defaults to the current working directory.
  */
 export default async function downloadCommand(
     courseQuery: string,
@@ -47,7 +50,9 @@ export default async function downloadCommand(
     const toc = await getTOC(client, course.OrgUnit.Id);
 
     const rootName = sanitizeName(course.OrgUnit.Code ?? String(course.OrgUnit.Id));
-    const outRoot = join(cwd(), rootName);
+    const outParent = options.outdir ? resolvePath(options.outdir) : cwd();
+    const outRoot = join(outParent, rootName);
+    const displayRoot = relative(cwd(), outRoot) || outRoot;
     const rows = flattenToc(toc.Modules ?? []);
     const { files, unsupported } = filesForRange(rows, start, end);
 
@@ -59,7 +64,7 @@ export default async function downloadCommand(
     if (dryRun) {
         for (const item of files) {
             const name = sanitizeName(item.topic.Title || `topic-${item.topic.TopicId}`);
-            console.log(`would ${join(rootName, item.relDir, name)}`);
+            console.log(`would ${join(displayRoot, item.relDir, name)}`);
         }
         console.log(`\nDone. would=${files.length} unsupported=${unsupported}`);
         return;
@@ -75,7 +80,7 @@ export default async function downloadCommand(
 
         try {
             if (await pathExists(destPath)) {
-                console.log(`skip  ${join(rootName, item.relDir, sanitizeName(fallbackName))}`);
+                console.log(`skip  ${join(displayRoot, item.relDir, sanitizeName(fallbackName))}`);
                 skipped += 1;
                 continue;
             }
@@ -88,13 +93,13 @@ export default async function downloadCommand(
             destPath = join(outRoot, item.relDir, filename);
 
             if (await pathExists(destPath)) {
-                console.log(`skip  ${join(rootName, item.relDir, filename)}`);
+                console.log(`skip  ${join(displayRoot, item.relDir, filename)}`);
                 skipped += 1;
                 continue;
             }
 
             await writeResponseToFile(res, destPath);
-            console.log(`ok    ${join(rootName, item.relDir, filename)}`);
+            console.log(`ok    ${join(displayRoot, item.relDir, filename)}`);
             downloaded += 1;
         } catch (err) {
             failed += 1;

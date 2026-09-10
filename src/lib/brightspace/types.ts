@@ -35,13 +35,14 @@ export type PagedResult<T> = {
 };
 
 /**
- * Nested in TocModule.
+ * Nested in TocModule (from /content/toc).
+ * Note: ToC topics use TypeIdentifier/ActivityType, not ContentObject TopicType.
  */
 export type TOCTopic = {
     TopicId: number;
     Title: string;
-    Type?: number;
-    TopicType?: number;
+    TypeIdentifier?: string;
+    ActivityType?: number;
     Url?: string | null;
 };
 

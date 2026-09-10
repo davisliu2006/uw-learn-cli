@@ -1,6 +1,7 @@
 import { createWriteStream } from "fs";
 import { mkdir, rename, rm, stat } from "fs/promises";
-import { dirname } from "path";
+import { homedir } from "os";
+import { dirname, join, resolve } from "path";
 import { pipeline } from "stream/promises";
 import { Readable } from "stream";
 
@@ -15,6 +16,26 @@ export function sanitizeName(name: string): string {
         return "_";
     }
     return cleaned.slice(0, 120);
+}
+
+/**
+ * Expand a leading ~ to the user home directory.
+ */
+export function expandHome(path: string): string {
+    if (path === "~") {
+        return homedir();
+    }
+    if (path.startsWith("~/") || path.startsWith("~\\")) {
+        return join(homedir(), path.slice(2));
+    }
+    return path;
+}
+
+/**
+ * Expand ~ then resolve to an absolute path.
+ */
+export function resolvePath(path: string): string {
+    return resolve(expandHome(path));
 }
 
 /**

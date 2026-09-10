@@ -46,14 +46,19 @@ export default function buildCLI(): Command {
 
     program
         .command("download")
-        .description("Download file topics for a course into ./{CourseCode}/")
+        .description("Download file topics for a course into <outdir>/{CourseCode}/")
         .argument("<course>", "Course id, code, or name")
         .argument("<start>", "Start content line number (inclusive, from content)")
         .argument("[end]", "End content line number (inclusive); defaults to start")
+        .option("-o, --outdir <dir>", "Parent directory for the course folder (default: cwd)")
         .option("--dry-run", "List files that would be downloaded without writing")
-        .action((course: string, start: string, end: string | undefined, opts: { dryRun?: boolean }) =>
-            downloadCommand(course, start, end, opts),
-        );
+        .action((
+            course: string,
+            start: string,
+            end: string | undefined,
+            opts: { dryRun?: boolean; outdir?: string },
+        ) => downloadCommand(course, start, end, opts));
+
 
     return program;
 }
