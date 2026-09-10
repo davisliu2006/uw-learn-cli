@@ -4,6 +4,7 @@ import { getTOC } from "../lib/brightspace/content.js";
 import { listMyCourses } from "../lib/brightspace/enrollments.js";
 import { blue, green, yellow } from "../lib/fonts.js";
 import { resolveCourse } from "../lib/resolve.js";
+import type { ShellState } from "../lib/shell-state.js";
 import { flattenToc, topicType } from "../lib/toc.js";
 import type { TOCModule } from "../lib/brightspace/types.js";
 
@@ -48,13 +49,23 @@ function printTOC(
 }
 
 /**
- * Resolve a course and print its TOC as a numbered tree.
+ * Resolve a course, remember it for this shell session, and print its TOC.
  */
-export default async function contentCommand(courseQuery: string): Promise<void> {
+export default async function getCourseCommand(
+    courseQuery: string,
+    state: ShellState,
+): Promise<void> {
     const session = await requireSession();
     const client = new BrightspaceClient(session);
     const courses = await listMyCourses(client);
     const course = resolveCourse(courses, courseQuery);
+
+    state.setCurrentCourse({
+        id: course.OrgUnit.Id,
+        code: course.OrgUnit.Code,
+        name: course.OrgUnit.Name,
+    });
+
     const toc = await getTOC(client, course.OrgUnit.Id);
 
     const modules = toc.Modules ?? [];

@@ -3,7 +3,6 @@ import { join, relative } from "path";
 import { requireSession } from "../lib/auth/store.js";
 import { BrightspaceClient } from "../lib/brightspace/client.js";
 import { getTOC, getTopicFile } from "../lib/brightspace/content.js";
-import { listMyCourses } from "../lib/brightspace/enrollments.js";
 import {
     filenameFromDisposition,
     pathExists,
@@ -11,7 +10,7 @@ import {
     sanitizeName,
     writeResponseToFile,
 } from "../lib/fs.js";
-import { resolveCourse } from "../lib/resolve.js";
+import type { ShellState } from "../lib/shell-state.js";
 import { filesForRange, flattenToc } from "../lib/toc.js";
 
 export type DownloadOptions = {
@@ -30,26 +29,25 @@ function parseLineIndex(value: string, label: string): number {
 }
 
 /**
- * Download file topics for a course into <outdir>/{CourseCode}/, skipping existing files.
- * start/end are inclusive content line numbers from `content` (end defaults to start).
+ * Download file topics for the shell's current course into <outdir>/{CourseCode}/.
+ * start/end are inclusive content line numbers from `get` (end defaults to start).
  * outdir defaults to the current working directory.
  */
 export default async function downloadCommand(
-    courseQuery: string,
     startArg: string,
-    endArg?: string,
-    options: DownloadOptions = {},
+    endArg: string | undefined,
+    options: DownloadOptions,
+    state: ShellState,
 ): Promise<void> {
     const start = parseLineIndex(startArg, "Start");
     const end = endArg !== undefined ? parseLineIndex(endArg, "End") : start;
 
+    const course = state.requireCurrentCourse();
     const session = await requireSession();
     const client = new BrightspaceClient(session);
-    const courses = await listMyCourses(client);
-    const course = resolveCourse(courses, courseQuery);
-    const toc = await getTOC(client, course.OrgUnit.Id);
+    const toc = await getTOC(client, course.id);
 
-    const rootName = sanitizeName(course.OrgUnit.Code ?? String(course.OrgUnit.Id));
+    const rootName = sanitizeName(course.code ?? String(course.id));
     const outParent = options.outdir ? resolvePath(options.outdir) : cwd();
     const outRoot = join(outParent, rootName);
     const displayRoot = relative(cwd(), outRoot) || outRoot;
@@ -85,7 +83,7 @@ export default async function downloadCommand(
                 continue;
             }
 
-            const res = await getTopicFile(client, course.OrgUnit.Id, item.topic.TopicId);
+            const res = await getTopicFile(client, course.id, item.topic.TopicId);
             const filename = filenameFromDisposition(
                 res.headers.get("content-disposition"),
                 fallbackName,

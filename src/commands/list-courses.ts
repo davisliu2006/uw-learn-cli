@@ -20,7 +20,7 @@ function formatDate(iso: string | null | undefined): string {
 /**
  * List enrolled courses.
  */
-export default async function coursesCommand(): Promise<void> {
+export default async function listCoursesCommand(): Promise<void> {
     const session = await requireSession();
     const client = new BrightspaceClient(session);
     const courses = await listMyCourses(client);

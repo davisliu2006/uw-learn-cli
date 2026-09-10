@@ -1,16 +1,17 @@
 import { Command } from "commander";
 import { APP_NAME } from "./lib/config.js";
+import { ShellState } from "./lib/shell-state.js";
 import loginCommand from "./commands/login.js";
 import logoutCommand from "./commands/logout.js";
 import whoamiCommand from "./commands/whoami.js";
-import coursesCommand from "./commands/courses.js";
-import contentCommand from "./commands/content.js";
+import listCoursesCommand from "./commands/list-courses.js";
+import getCourseCommand from "./commands/get-course.js";
 import downloadCommand from "./commands/download.js";
 
 /**
  * Wire subcommands using Commander.
  */
-export default function buildCLI(): Command {
+export default function buildCLI(state: ShellState): Command {
     const program = new Command();
 
     program
@@ -34,31 +35,30 @@ export default function buildCLI(): Command {
         .action(whoamiCommand);
 
     program
-        .command("courses")
+        .command("list-courses")
+        .alias("list")
         .description("List enrolled course offerings")
-        .action(coursesCommand);
+        .action(listCoursesCommand);
 
     program
-        .command("content")
-        .description("Show the numbered content tree for a course")
+        .command("get-course")
+        .alias("get")
+        .description("Select a course for this shell and show its numbered content tree")
         .argument("<course>", "Course id, code, or name")
-        .action(contentCommand);
+        .action((course: string) => getCourseCommand(course, state));
 
     program
         .command("download")
-        .description("Download file topics for a course into <outdir>/{CourseCode}/")
-        .argument("<course>", "Course id, code, or name")
-        .argument("<start>", "Start content line number (inclusive, from content)")
+        .description("Download file topics for the course selected by get")
+        .argument("<start>", "Start content line number (inclusive, from get)")
         .argument("[end]", "End content line number (inclusive); defaults to start")
         .option("-o, --outdir <dir>", "Parent directory for the course folder (default: cwd)")
         .option("--dry-run", "List files that would be downloaded without writing")
         .action((
-            course: string,
             start: string,
             end: string | undefined,
             opts: { dryRun?: boolean; outdir?: string },
-        ) => downloadCommand(course, start, end, opts));
-
+        ) => downloadCommand(start, end, opts, state));
 
     return program;
 }

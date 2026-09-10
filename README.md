@@ -14,17 +14,13 @@ npm link
 Or run without linking:
 
 ```bash
-npm run dev -- <command>
+npm run dev
 ```
 
 ## Usage
 
 ```bash
-# interactive shell
-uw-learn
-# one-shot commands still work        
-uw-learn login
-uw-learn courses
+uw-learn  # start interactive shell
 ```
 
 ### Commands
@@ -33,15 +29,14 @@ uw-learn courses
 > login
 > logout
 > whoami
-> courses
-> content <course>
-> download <course> <start> [end] [-o <outdir>] [--dry-run]
+> list-courses (list)
+> get-course <course> (get)
+> download <start> [end] [-o <outdir>] [--dry-run]
 > exit
 ```
 
 `login` opens a Chromium window and saves session cookies.
 
-`content` prints a numbered tree; use those line numbers with `download`.
+`get` / `get-course` prints a numbered tree and selects that course for this shell. Use those line numbers with `download`.
 
-`download` writes files to `<outdir>/{CourseCode}/` (`outdir` defaults to the current directory).
-
+`download` writes files to `<outdir>/{CourseCode}/` (`outdir` defaults to the current directory). It uses the course from the last `get` in this shell session.

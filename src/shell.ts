@@ -2,6 +2,7 @@ import { createInterface } from "readline/promises";
 import { stdin, stdout } from "process";
 import buildCLI from "./cli.js";
 import { APP_NAME } from "./lib/config.js";
+import { ShellState } from "./lib/shell-state.js";
 
 /**
  * Split a shell line into argv tokens, respecting simple single/double quotes.
@@ -20,7 +21,8 @@ function tokenize(line: string): string[] {
  * Run an interactive REPL that parses each line with Commander.
  */
 export default async function runShell(): Promise<void> {
-    const program = buildCLI();
+    const state = new ShellState();
+    const program = buildCLI(state);
     program.addHelpCommand("help [command]", "display help for a command");
     // Prevent Commander from killing the process on help / usage errors.
     program.exitOverride();
