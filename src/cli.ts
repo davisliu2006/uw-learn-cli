@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { APP_NAME } from "./lib/config.js";
+import { CLI_NAME } from "./lib/config.js";
 import { ShellState } from "./lib/shell-state.js";
 import loginCommand from "./commands/login.js";
 import logoutCommand from "./commands/logout.js";
@@ -7,6 +7,7 @@ import whoamiCommand from "./commands/whoami.js";
 import listCoursesCommand from "./commands/list-courses.js";
 import getCourseCommand from "./commands/get-course.js";
 import downloadCommand from "./commands/download.js";
+import openCommand from "./commands/open.js";
 
 /**
  * Wire subcommands using Commander.
@@ -15,7 +16,7 @@ export default function buildCLI(state: ShellState): Command {
     const program = new Command();
 
     program
-        .name(APP_NAME)
+        .name(CLI_NAME)
         .description("CLI for University of Waterloo LEARN")
         .version("0.1.0");
 
@@ -59,6 +60,12 @@ export default function buildCLI(state: ShellState): Command {
             end: string | undefined,
             opts: { dryRun?: boolean; outdir?: string },
         ) => downloadCommand(start, end, opts, state));
+
+    program
+        .command("open")
+        .description("Open a content topic from get in the default browser")
+        .argument("<line>", "Content line number (from get)")
+        .action((line: string) => openCommand(line, state));
 
     return program;
 }

@@ -1,4 +1,4 @@
-import { APP_NAME, HOST } from "../config.js";
+import { CLI_NAME, HOST } from "../config.js";
 import type { AuthSession, StoredCookie } from "../auth/types.js";
 import { clearSession } from "../auth/store.js";
 
@@ -38,7 +38,7 @@ export class BrightspaceClient {
 
         if (res.status === 401) {
             await clearSession();
-            throw new Error(`Session expired. Run: ${APP_NAME} login`);
+            throw new Error(`Session expired. Run: ${CLI_NAME} login`);
         }
 
         return res;

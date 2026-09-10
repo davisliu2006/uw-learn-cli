@@ -1,7 +1,7 @@
 import { createInterface } from "readline/promises";
 import { stdin, stdout } from "process";
 import buildCLI from "./cli.js";
-import { APP_NAME } from "./lib/config.js";
+import { CLI_NAME } from "./lib/config.js";
 import { ShellState } from "./lib/shell-state.js";
 
 /**
@@ -35,7 +35,7 @@ export default async function runShell(): Promise<void> {
         output: stdout,
         terminal: true,
     });
-    console.log(`${APP_NAME} interactive shell. Type 'help' for a list of commands or 'exit' to exit shell.`);
+    console.log(`${CLI_NAME} interactive shell. Type 'help' for a list of commands or 'exit' to exit shell.`);
 
     try {
         while (true) {

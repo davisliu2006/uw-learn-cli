@@ -73,6 +73,7 @@ export async function pathExists(path: string): Promise<boolean> {
 
 /**
  * Stream a Response body to destPath via a temporary .part file, then rename.
+ * Overwrites destPath if it already exists.
  */
 export async function writeResponseToFile(res: Response, destPath: string): Promise<void> {
     await mkdir(dirname(destPath), { recursive: true });
@@ -83,6 +84,7 @@ export async function writeResponseToFile(res: Response, destPath: string): Prom
         }
         const nodeStream = Readable.fromWeb(res.body as import("stream/web").ReadableStream);
         await pipeline(nodeStream, createWriteStream(partPath));
+        await rm(destPath, { force: true });
         await rename(partPath, destPath);
     } catch (err) {
         await rm(partPath, { force: true }).catch(() => undefined);

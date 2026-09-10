@@ -4,7 +4,12 @@ import { join } from "path";
 /**
  * CLI binary name.
  */
-export const APP_NAME = "uw-learn";
+export const CLI_NAME = "uw-learn";
+
+/**
+ * The name of the app used for config files.
+ */
+export const APP_NAME = "uw-learn-cli";
 
 /**
  * LEARN Brightspace host.

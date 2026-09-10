@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { APP_NAME } from "./lib/config.js";
+import { CLI_NAME } from "./lib/config.js";
 import runShell from "./shell.js";
 
 /**
@@ -11,7 +11,7 @@ async function main(): Promise<void> {
     const args = process.argv.slice(2);
     if (args.length > 0) {
         console.error(
-            `One-shot commands are disabled. Run \`${APP_NAME}\` to open the interactive shell.`,
+            `One-shot commands are disabled. Run \`${CLI_NAME}\` to open the interactive shell.`,
         );
         process.exit(1);
     }

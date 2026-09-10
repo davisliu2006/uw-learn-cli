@@ -1,6 +1,6 @@
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import { join } from "path";
-import { APP_NAME, configDir } from "../config.js";
+import { CLI_NAME, configDir } from "../config.js";
 import type { AuthSession } from "./types.js";
 
 /**
@@ -50,7 +50,7 @@ export async function clearSession(): Promise<void> {
 export async function requireSession(): Promise<AuthSession> {
     const session = await loadSession();
     if (!session) {
-        throw new Error(`Not logged in. Run: ${APP_NAME} login`);
+        throw new Error(`Not logged in. Run: ${CLI_NAME} login`);
     }
     return session;
 }

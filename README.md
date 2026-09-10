@@ -1,17 +1,21 @@
 # uw-learn
 
-CLI for [University of Waterloo LEARN](https://learn.uwaterloo.ca).
+CLI for the [UWaterloo LEARN](https://learn.uwaterloo.ca) platform to help batch-pull files.
 
 ## Setup
 
 ```bash
+# install dependencies
 npm install
+# install playwright browser core
 npx playwright install chromium
+# build
 npm run build
+# link the command
 npm link
 ```
 
-Or run without linking:
+To run without linking:
 
 ```bash
 npm run dev
@@ -29,14 +33,21 @@ uw-learn  # start interactive shell
 > login
 > logout
 > whoami
-> list-courses (list)
-> get-course <course> (get)
+> list-courses|list
+> get-course|get <course>
 > download <start> [end] [-o <outdir>] [--dry-run]
+> open <line>
 > exit
 ```
 
 `login` opens a Chromium window and saves session cookies.
 
-`get` / `get-course` prints a numbered tree and selects that course for this shell. Use those line numbers with `download`.
+`logout` removes sesssion cookies.
 
-`download` writes files to `<outdir>/{CourseCode}/` (`outdir` defaults to the current directory). It uses the course from the last `get` in this shell session.
+`list` / `list-courses` lists all currently enrolled courses.
+
+`get` / `get-course` selects the course for the shell and prints a tree of the course contents. Each line of the tree is numbered, which can be used as indices for `download` and `open`.
+
+`download` writes files to `<outdir>/{CourseCode}/`. `outdir` defaults to the current working directory but can be set to a value like `~/Downloads`. It uses the course from the last `get` in the shell session.
+
+`open` opens a course content item in the default browser (must already be signed into LEARN there). It uses the course from the last `get` in the shell session.

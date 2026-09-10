@@ -5,7 +5,6 @@ import { BrightspaceClient } from "../lib/brightspace/client.js";
 import { getTOC, getTopicFile } from "../lib/brightspace/content.js";
 import {
     filenameFromDisposition,
-    pathExists,
     resolvePath,
     sanitizeName,
     writeResponseToFile,
@@ -69,32 +68,18 @@ export default async function downloadCommand(
     }
 
     let downloaded = 0;
-    let skipped = 0;
     let failed = 0;
 
     for (const item of files) {
         const fallbackName = item.topic.Title || `topic-${item.topic.TopicId}`;
-        let destPath = join(outRoot, item.relDir, sanitizeName(fallbackName));
 
         try {
-            if (await pathExists(destPath)) {
-                console.log(`skip  ${join(displayRoot, item.relDir, sanitizeName(fallbackName))}`);
-                skipped += 1;
-                continue;
-            }
-
             const res = await getTopicFile(client, course.id, item.topic.TopicId);
             const filename = filenameFromDisposition(
                 res.headers.get("content-disposition"),
                 fallbackName,
             );
-            destPath = join(outRoot, item.relDir, filename);
-
-            if (await pathExists(destPath)) {
-                console.log(`skip  ${join(displayRoot, item.relDir, filename)}`);
-                skipped += 1;
-                continue;
-            }
+            const destPath = join(outRoot, item.relDir, filename);
 
             await writeResponseToFile(res, destPath);
             console.log(`ok    ${join(displayRoot, item.relDir, filename)}`);
@@ -106,7 +91,7 @@ export default async function downloadCommand(
     }
 
     console.log(
-        `\nDone. downloaded=${downloaded} skipped=${skipped} unsupported=${unsupported} failed=${failed}`,
+        `\nDone. downloaded=${downloaded} unsupported=${unsupported} failed=${failed}`,
     );
     if (failed > 0) {
         throw new Error(`Download finished with ${failed} failure(s).`);
